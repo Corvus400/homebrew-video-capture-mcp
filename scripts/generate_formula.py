@@ -62,6 +62,8 @@ def _formula(version: str, sdist_url: str, sha256: str) -> str:
   license "MIT"
   version "{version}"
 
+  skip_clean "libexec"
+
   depends_on "ffmpeg"
   depends_on "python@3.12"
 

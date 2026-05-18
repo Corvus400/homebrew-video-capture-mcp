@@ -8,6 +8,8 @@ class VideoCaptureMcp < Formula
   license "MIT"
   version "0.1.0"
 
+  skip_clean "libexec"
+
   depends_on "ffmpeg"
   depends_on "python@3.12"
 
