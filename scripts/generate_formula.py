@@ -10,7 +10,7 @@ from pathlib import Path
 
 PROJECT = "video-capture-mcp"
 PACKAGE = "video_capture_mcp"
-PYPI_JSON_URL = f"https://pypi.org/pypi/{PROJECT}/json"
+PYPI_VERSION_JSON_URL = f"https://pypi.org/pypi/{PROJECT}/{{version}}/json"
 
 
 def main() -> int:
@@ -35,9 +35,9 @@ def main() -> int:
 
 
 def _sdist_url(version: str) -> str:
-    with urllib.request.urlopen(PYPI_JSON_URL, timeout=30) as response:
+    with urllib.request.urlopen(PYPI_VERSION_JSON_URL.format(version=version), timeout=30) as response:
         payload = json.load(response)
-    for file_info in payload["releases"].get(version, []):
+    for file_info in payload["urls"]:
         if file_info.get("packagetype") == "sdist":
             return str(file_info["url"])
     raise RuntimeError(f"no sdist found for {PROJECT} {version}")

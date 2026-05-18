@@ -22,9 +22,9 @@ jobs:
 
       - name: Check generated formula is current
         run: |
-          python3 scripts/generate_formula.py v0.1.0
+          version="$(ruby -ne 'puts $1 if /version "([^"]+)"/' Formula/video-capture-mcp.rb)"
+          python3 scripts/generate_formula.py "v${version}"
           git diff --exit-code Formula/video-capture-mcp.rb
 
       - name: Check for local/private data
         run: python3 scripts/audit_local_private_data.py
-
