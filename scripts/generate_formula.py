@@ -66,11 +66,14 @@ def _formula(version: str, sdist_url: str, sha256: str) -> str:
   depends_on "python@3.12"
 
   def install
-    virtualenv_install_with_resources
+    virtualenv_create(libexec, "python3.12")
+    system libexec/"bin/pip", "install", *std_pip_args, "."
+    bin.install_symlink libexec/"bin/video-capture-mcp"
   end
 
   test do
-    assert_match "video_capture", shell_output("#{{bin}}/video-capture-mcp < /dev/null", 1)
+    assert_match "video-capture-mcp", shell_output("#{{bin}}/pip show video-capture-mcp")
+    assert_match "mcp", shell_output("#{{bin}}/pip show mcp")
   end
 end
 '''
@@ -78,4 +81,3 @@ end
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
