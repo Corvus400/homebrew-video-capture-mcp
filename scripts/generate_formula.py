@@ -4,6 +4,8 @@ import hashlib
 import json
 import re
 import sys
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -11,6 +13,8 @@ from pathlib import Path
 PROJECT = "video-capture-mcp"
 PACKAGE = "video_capture_mcp"
 PYPI_VERSION_JSON_URL = f"https://pypi.org/pypi/{PROJECT}/{{version}}/json"
+PYPI_ATTEMPTS = 60
+PYPI_DELAY_SECONDS = 10
 
 
 def main() -> int:
@@ -35,12 +39,24 @@ def main() -> int:
 
 
 def _sdist_url(version: str) -> str:
-    with urllib.request.urlopen(PYPI_VERSION_JSON_URL.format(version=version), timeout=30) as response:
-        payload = json.load(response)
+    payload = _pypi_payload(version)
     for file_info in payload["urls"]:
         if file_info.get("packagetype") == "sdist":
             return str(file_info["url"])
     raise RuntimeError(f"no sdist found for {PROJECT} {version}")
+
+
+def _pypi_payload(version: str) -> dict[str, object]:
+    url = PYPI_VERSION_JSON_URL.format(version=version)
+    last_error: BaseException | None = None
+    for _ in range(PYPI_ATTEMPTS):
+        try:
+            with urllib.request.urlopen(url, timeout=30) as response:
+                return json.load(response)
+        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as error:
+            last_error = error
+            time.sleep(PYPI_DELAY_SECONDS)
+    raise RuntimeError(f"PyPI metadata was not available for {PROJECT} {version}") from last_error
 
 
 def _sha256(url: str) -> str:
