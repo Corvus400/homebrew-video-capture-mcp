@@ -10,3 +10,9 @@ brew tap Corvus400/video-capture-mcp
 brew install video-capture-mcp
 ```
 
+## Security
+
+Report security issues through the upstream repository's private security
+advisory flow:
+
+https://github.com/Corvus400/video-capture-mcp/security/advisories/new
