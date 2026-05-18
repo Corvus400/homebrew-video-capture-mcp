@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update-formula:
@@ -26,10 +27,26 @@ jobs:
         run: python scripts/generate_formula.py "$RELEASE_TAG"
 
       - name: Commit formula update
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.version }}
         run: |
+          version="${RELEASE_TAG#v}"
+          branch="update-video-capture-mcp-${version}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "${branch}"
           git add Formula/video-capture-mcp.rb
-          git commit -m "chore: update video-capture-mcp formula to ${RELEASE_TAG}" || exit 0
-          git push
+          if git diff --cached --quiet
+          then
+            exit 0
+          fi
+          git commit -m "chore: update video-capture-mcp formula to ${RELEASE_TAG}"
+          git push --force-with-lease origin "${branch}"
+          if gh pr view "${branch}" --json number
+          then
+            gh pr edit "${branch}" --title "chore: update video-capture-mcp formula to ${RELEASE_TAG}"
+          else
+            gh pr create --base main --head "${branch}" --title "chore: update video-capture-mcp formula to ${RELEASE_TAG}" --body "Update video-capture-mcp Homebrew formula to ${RELEASE_TAG}. The PR branch lets tap-ci satisfy branch protection before merge."
+          fi
 
