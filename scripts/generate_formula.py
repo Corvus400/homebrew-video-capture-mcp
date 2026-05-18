@@ -67,7 +67,7 @@ def _formula(version: str, sdist_url: str, sha256: str) -> str:
 
   def install
     virtualenv_create(libexec, "python3.12")
-    system libexec/"bin/pip", "install", *std_pip_args, "."
+    system libexec/"bin/pip", "install", "."
     bin.install_symlink libexec/"bin/video-capture-mcp"
   end
 
