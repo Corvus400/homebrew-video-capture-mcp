@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tap-ci:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Check Ruby formula syntax
+        run: ruby -c Formula/video-capture-mcp.rb
+
+      - name: Check formula generator syntax
+        run: python3 -m py_compile scripts/generate_formula.py
+
+      - name: Check generated formula is current
+        run: |
+          python3 scripts/generate_formula.py v0.1.0
+          git diff --exit-code Formula/video-capture-mcp.rb
+
+      - name: Check for local/private data
+        run: python3 scripts/audit_local_private_data.py
+
