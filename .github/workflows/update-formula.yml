@@ -26,7 +26,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.version }}
         run: python scripts/generate_formula.py "$RELEASE_TAG"
 
-      - name: Commit formula update
+      - name: Commit, check, and merge formula update
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.version }}
@@ -46,7 +46,27 @@ jobs:
           if gh pr view "${branch}" --json number
           then
             gh pr edit "${branch}" --title "chore: update video-capture-mcp formula to ${RELEASE_TAG}"
+            pr_number="$(gh pr view "${branch}" --json number --jq .number)"
           else
-            gh pr create --base main --head "${branch}" --title "chore: update video-capture-mcp formula to ${RELEASE_TAG}" --body "Update video-capture-mcp Homebrew formula to ${RELEASE_TAG}. The PR branch lets tap-ci satisfy branch protection before merge."
+            gh pr create \
+              --base main \
+              --head "${branch}" \
+              --title "chore: update video-capture-mcp formula to ${RELEASE_TAG}" \
+              --body "Update video-capture-mcp Homebrew formula to ${RELEASE_TAG}. The workflow opens this PR, waits for tap-ci, and merges only after branch protection passes."
+            pr_number="$(gh pr view "${branch}" --json number --jq .number)"
           fi
 
+          for _ in {1..60}; do
+            state="$(gh pr checks "${pr_number}" --json name,state --jq '.[] | select(.name == "tap-ci") | .state' || true)"
+            if [ "${state}" = "SUCCESS" ]; then
+              gh pr merge "${pr_number}" --squash --delete-branch
+              exit 0
+            fi
+            if [ "${state}" = "FAILURE" ] || [ "${state}" = "ERROR" ] || [ "${state}" = "CANCELLED" ]; then
+              gh pr checks "${pr_number}"
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "tap-ci did not pass for PR #${pr_number}" >&2
+          exit 1
