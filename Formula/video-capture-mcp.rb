@@ -1,10 +1,10 @@
 class VideoCaptureMcp < Formula
   desc "MCP server for macOS, iOS Simulator, and Android screen recording"
   homepage "https://github.com/Corvus400/video-capture-mcp"
-  url "https://files.pythonhosted.org/packages/bd/d3/91203aa3e5eff5449407b12b5afc2c49326fb80ffd183b3e2d93d312e216/video_capture_mcp-0.4.0.tar.gz"
-  sha256 "4f92c4ba249c45b927e55183c458bcffe0acfa6e1fec53bea03faa3e38100790"
+  url "https://files.pythonhosted.org/packages/12/be/8a7dc7a200ce68b580fd55b3bc5dd21030251d5aa81fc650e2787fc05dbd/video_capture_mcp-0.5.0.tar.gz"
+  sha256 "a299aa36bab3c36d14a4a31dfdacc7a7b9fc6bc9abba467c5f451a152da4f14a"
   license "MIT"
-  version "0.4.0"
+  version "0.5.0"
 
   depends_on "ffmpeg"
   depends_on "uv"
@@ -12,11 +12,11 @@ class VideoCaptureMcp < Formula
   def install
     (bin/"video-capture-mcp").write <<~SH
       #!/bin/bash
-      exec "#{Formula["uv"].opt_bin}/uvx" "video-capture-mcp==0.4.0" "$@"
+      exec "#{Formula["uv"].opt_bin}/uvx" "video-capture-mcp==0.5.0" "$@"
     SH
   end
 
   test do
-    assert_match "video-capture-mcp==0.4.0", (bin/"video-capture-mcp").read
+    assert_match "video-capture-mcp==0.5.0", (bin/"video-capture-mcp").read
   end
 end
